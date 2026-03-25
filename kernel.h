@@ -28,6 +28,10 @@ extern struct TCB *head;/* Linked List yapısındaki başlangıç fonksiyonunun 
 Asıl görev başka dosyada burada sadece başlangıç adresini tüm dosyalarla paylaşıyoruz.*/
 extern struct TCB *su_an_calisan; /*Sistemin o anda çalıştırdığı fonksiyonun adresini tüm dosyalarla paylaşan fonksiyon.*/
 
+void gorev_sil (uint8_t silinecek_id); //silinmesini istediğimiz veya silinmesi gereken görevleri silen fonksiyon.
+void nav_core_tick (void); // çekirdeğin her ms de 1 kez tetiklenmesini sağlar, zamanı takip eder.
+void idle_task(void); //sistemde çalışacak herhangi bir görev yoksa sistemin boş kalıp hata vermesini önler. 
+
 #endif
 
 
