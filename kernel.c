@@ -1,35 +1,91 @@
 #include "kernel.h"
-#include <stddef.h> 
+#include <stdlib.h>
 
-/* --- Küresel Değişkenlerin Fiziksel Tanımı (Bellekte Yer Açma) --- */
-struct TCB *head = NULL; 
-struct TCB *su_an_calisan = NULL;
+struct TCB *head=NULL;
+struct TCB *su_an_calisan=NULL;
+//Sistem ilk açıldığında RAM'de kayıtı ve o an çalışan hiçbir görev yoktur. 
+/*ilk olarak bu iki değişkeni NULL tanımlamamızın nedeni: ilk önce değişkenler için RAM de yer açıyoruz 
+ve daha sonrasında bu deeğişkenlere atama yapacağız. */
 
-/* --- Fonksiyon İçerikleri --- */
+void nav_core_init (void){
+    head=NULL;
+    su_an_calisan=NULL;
+}
+/*Bu fonksiyon ilk kurulumda ve yazılımsal reset gerektiğinde devreye girer. Çalışan bir sistemi kapatıp yeniden başlatmak 
+istediğimizde eski görevlerin adreslerinin kalmaması içi değişkenleri yeniden NULL yptık.*/
 
-void nav_core_init() {
-    head = NULL;
-    su_an_calisan = NULL;
+
+//listeye yeni eklenen bir görevi önceliğine göre yerleştirdik.
+void gorev_ekle (struct TCB *eklenecek_gorev_adresi){
+    if (head==NULL || eklenecek_gorev_adresi->priority < head->priority){
+        eklenecek_gorev_adresi->siradaki_gorev=head;
+        head=eklenecek_gorev_adresi;
+ }
+
+ 
+    else {
+    struct TCB *temporary_pointer=head;
+    while (temporary_pointer->siradaki_gorev!=NULL && temporary_pointer->siradaki_gorev->priority<=eklenecek_gorev_adresi->priority)
+    {temporary_pointer=temporary_pointer->siradaki_gorev;}
+
+    eklenecek_gorev_adresi->siradaki_gorev=temporary_pointer->siradaki_gorev;
+    temporary_pointer->siradaki_gorev=eklenecek_gorev_adresi;
+    }
+
 }
 
-void gorev_ekle(struct TCB *eklenecek_gorev_adresi) {
-    if (head == NULL || eklenecek_gorev_adresi->priority < head->priority) {
-        eklenecek_gorev_adresi->siradaki_gorev = head;
-        head = eklenecek_gorev_adresi;
-    } else {
-        struct TCB *gecici = head;
-        while (gecici->siradaki_gorev != NULL && gecici->siradaki_gorev->priority <= eklenecek_gorev_adresi->priority) {
-            gecici = gecici->siradaki_gorev;
+//görev silme algoritması
+
+void gorev_sil(uint8_t silinecek_id){
+     if (head==NULL) return;
+
+
+     //head silinecekse 
+   
+    if (head->id == silinecek_id){
+      struct TCB *eski_head=head;
+      head=head->siradaki_gorev;
+      free(eski_head);
+    return;}
+   
+    //aradaki bir görev silinecekse.
+    struct TCB *temporary_pointer=head;
+    while (temporary_pointer->siradaki_gorev != NULL && temporary_pointer->siradaki_gorev->id != silinecek_id){
+        temporary_pointer=temporary_pointer->siradaki_gorev;
+    }
+    if (temporary_pointer->siradaki_gorev != NULL) {
+        struct TCB *silinecek_gorev = temporary_pointer->siradaki_gorev;
+        temporary_pointer->siradaki_gorev = silinecek_gorev->siradaki_gorev;
+        free(silinecek_gorev);
+    }
+
+    }
+
+//sistemde o an çalışacak hiçbir görev yoksa yoksa bu görevi çalışacak böylece sistemin çökmesini (hard fault) engelledik.
+void idle_task (void){
+    while (1){
+
+    }
+}
+// sistemin zamanını tuttuk. listenin başından sonuna tüm görevleri gezer ve bekleme sürelerini günceller.
+void nav_core_tick (void){
+    struct TCB *fake_head=head;
+    while (fake_head!= NULL) {
+        if (fake_head->delay_ms > 0 ){
+            fake_head->delay_ms--;
         }
-        eklenecek_gorev_adresi->siradaki_gorev = gecici->siradaki_gorev;
-        gecici->siradaki_gorev = eklenecek_gorev_adresi;
-    }
+     }
 }
 
-void scheduler() {
-    if (head != NULL) {
-        su_an_calisan = head;
-        su_an_calisan->gorev_adres();
+void schedular (void) {
+    struct TCB *fake_head=head;
+    while (fake_head != NULL) {
+        if (fake_head->delay_ms == 0) {
+            su_an_calisan = fake_head ;
+            su_an_calisan->gorev_fonksiyonu();
+            return;
+        } 
+        fake_head=fake_head->siradaki_gorev;
     }
-}
 
+}
