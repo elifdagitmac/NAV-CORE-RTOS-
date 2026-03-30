@@ -4,7 +4,7 @@
 struct TCB *head=NULL;
 struct TCB *su_an_calisan=NULL;
 //Sistem ilk açıldığında RAM'de kayıtı ve o an çalışan hiçbir görev yoktur. 
-/*ilk olarak bu iki değişkeni NULL tanımlamamızın nedeni: ilk önce değişkenler için RAM de yer açıyoruz 
+/*ilk olarak bu iki değişkeni NULL tanımlamamızın nedeni: ilk önce değişkenler için RAM de yer açıyoruz (değişkenlerin adreslerini tutmak için bir boş kağıt almak gibi)
 ve daha sonrasında bu deeğişkenlere atama yapacağız. */
 
 void nav_core_init (void){
