@@ -27,7 +27,6 @@ void gorev_ekle (struct TCB *eklenecek_gorev_adresi){
     struct TCB *temporary_pointer=head;
     while (temporary_pointer->siradaki_gorev!=NULL && temporary_pointer->siradaki_gorev->priority<=eklenecek_gorev_adresi->priority)
     {temporary_pointer=temporary_pointer->siradaki_gorev;}
-
     eklenecek_gorev_adresi->siradaki_gorev=temporary_pointer->siradaki_gorev;
     temporary_pointer->siradaki_gorev=eklenecek_gorev_adresi;
     }
@@ -43,9 +42,9 @@ void gorev_sil(uint8_t silinecek_id){
      //head silinecekse 
    
     if (head->id == silinecek_id){
-      struct TCB *eski_head=head;
-      head=head->siradaki_gorev;
-      free(eski_head);
+      struct TCB *silinecek_gorev=head;
+      head=silinecek_gorev->siradaki_gorev;
+      free(silinecek_gorev);
     return;}
    
     //aradaki bir görev silinecekse.
@@ -61,13 +60,15 @@ void gorev_sil(uint8_t silinecek_id){
 
     }
 
-//sistemde o an çalışacak hiçbir görev yoksa yoksa bu görevi çalışacak böylece sistemin çökmesini (hard fault) engelledik.
+//sistemde o an çalışacak hiçbir görev yoksa yoksa bu görevi çalışacak böylece sistemin çökmesini (hard fault) engelledik. (veri bekleme ve veri gönderme anlarında bu görev devreye girebilir.)
 void idle_task (void){
     while (1){
 
     }
 }
-// sistemin zamanını tuttuk. listenin başından sonuna tüm görevleri gezer ve bekleme sürelerini günceller.
+// sistemin zamanını tuttuk. listenin başından sonuna tüm görevleri gezer ve bekleme sürelerini günceller. 
+//fake_head ile listenin başından başlayarak tüm görevleri tek tek kontrol ediyoruz. Eğer bir görevin bekleme süresi 0'dan büyükse, o görevin bekleme süresini 1 azaltıyoruz. 
+//Bu işlem her ms de bir kez yapılır, böylece görevlerin zamanlaması doğru şekilde yönetilir.
 void nav_core_tick (void){
     struct TCB *fake_head=head;
     while (fake_head!= NULL) {
@@ -77,6 +78,7 @@ void nav_core_tick (void){
      }
 }
 
+/* listeyi en acilden başlayıp tarayarak, çalışmaya hazır (beklemede olmayan) görevi bulup onu aktif eder */
 void schedular (void) {
     struct TCB *fake_head=head;
     while (fake_head != NULL) {
@@ -89,3 +91,6 @@ void schedular (void) {
     }
 
 }
+/* Arama işlemine head ile başlar. Oan bakılan görevde delay==0 mı diye kontrol eder. Eğer delay=0 ise görevi su_an_calisan olarak ayarlar ve 
+daha düşük öncelikli görevlere bakmaya gerek kalmadan programdan çıkar. Eğer görev hala bekliyorsa o görevi atlar ve bir sonraki göreve geçip yine delay 
+kontrolü yapar. Eğer tüm liste tarandıysa ve çalışacak hiçbir görevi bulamadıysa idle_task çalışır. */

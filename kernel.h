@@ -9,7 +9,7 @@ typedef void (*GorevFonksiyonu) ();
 // Bu satır sayesinde sisteme eklenecek her görevin aynı tipte olmasını sağladık. (Standartlaştırma yaptık.)
 // Bu parametre almayan, değer döndürmeyen bir fonksiyon olarak tanımlanmıştır. 
 
-//görevlerin struct yapılarını tanımlıyoruz.  
+//görevlerin struct yapılarını tanımlıyoruz.  (TCB tanımlaması)
 struct TCB {
     uint8_t id; // Görevin kimlik numarası. main.c dosyasında manuel olarak belirleyeceğiz.
     uint8_t priority; // Görevin öncelik sırası. (0 en yüksek)
