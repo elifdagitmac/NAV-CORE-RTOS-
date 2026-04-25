@@ -32,9 +32,9 @@ void Task_RadarScan(void *pvParameters) {
     while(1) {
         // Sensör tetikleme
         digitalWrite(TRIG_PIN, LOW);
-        delayMicroseconds(2);
+        delayMicroseconds(2); //sensörü bir sonraki gelecek olan komuta hazırlar, temizlik için kısa bir LOW sinyali
         digitalWrite(TRIG_PIN, HIGH);
-        delayMicroseconds(10);
+        delayMicroseconds(10);//ses dalgasının gönderilmesi için 10 mikro saniye HIGH sinyali
         digitalWrite(TRIG_PIN, LOW);
         
         // Yankı süresini oku ve mesafeye çevir
